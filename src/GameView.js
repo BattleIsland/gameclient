@@ -14,8 +14,14 @@ export const GameView = () => {
             context.canvas.width = window.innerWidth;
             context.canvas.height = window.innerHeight;
             context.save();
+            // move to middle
             context.translate(window.innerWidth/2, window.innerHeight/2);
-            context.rotate(0*Math.PI/180);
+            // rotate
+            context.rotate(50*Math.PI/180);
+            // offset by width
+            context.translate(assets['sprites.png'].sprites['gun'].sw, 0)
+            // flip across y axis
+            context.scale(-1, 1)
             drawSprite(context, 'gun', 0, 0)
             context.restore()
         }
@@ -24,7 +30,7 @@ export const GameView = () => {
     const drawSprite = (ctx, spriteName, x, y) => {
         const asset = assets['sprites.png'];
         const sprite = asset.sprites[spriteName];
-        ctx.drawImage(asset.image, sprite.sx, sprite.sy, sprite.sw, sprite.sh, x, y, sprite.sw, sprite.sh)
+        ctx.drawImage(asset.image, sprite.sx, sprite.sy, sprite.sw, sprite.sh, x, y, sprite.sw, sprite.sh);
     }
 
     return <canvas ref={canvasRef} />
