@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import { useAssets } from './assets';
 import { useMousePosition } from './mouseposition';
 
@@ -8,8 +8,7 @@ export const GameView = () => {
     const {assets, loading} = useAssets();
 
     const {angle} = useMousePosition();
-
-    useEffect(() => {console.log(angle)}, [angle])
+    const [hasGun, setHasGun] = useState(false);
 
     useEffect(() => {
         if (!loading) {
@@ -18,16 +17,32 @@ export const GameView = () => {
             context.canvas.width = window.innerWidth;
             context.canvas.height = window.innerHeight;
         }
-    }, [assets, loading])
+    }, [loading])
 
     useEffect(() => {
         if (!loading) {
             const canvas = canvasRef.current;
             const context = canvas.getContext('2d')
             context.clearRect(0, 0, canvas.width, canvas.height)
-            drawGun(context, angle);
+            drawPlayer(context);
+            if (hasGun) {
+                drawHandUnderGun(context, angle);
+                drawGun(context, angle);
+                drawHandOverGun(context, angle);
+            } else {
+                drawHandsWithoutGun(context, angle);
+            }
         }
-    }, [loading, angle])
+    }, [loading, angle, hasGun]);
+
+    useEffect(() => {
+        document.onkeyup = (e) => {
+            console.log(e)
+            if (e.key === '1') {
+                setHasGun((oldHasGun) => !oldHasGun)
+            }
+        }
+    }, []);
 
     const drawSprite = (ctx, spriteName, x, y) => {
         const asset = assets['sprites.png'];
@@ -42,10 +57,63 @@ export const GameView = () => {
         // rotate
         ctx.rotate(rotation*Math.PI/180);
         // offset by width
-        ctx.translate(assets['sprites.png'].sprites['gun'].sw, 0)
+        ctx.translate(assets['sprites.png'].sprites['gun'].sw+assets['sprites.png'].sprites['player'].sw/2-2, -assets['sprites.png'].sprites['gun'].sh/2)
         // flip across y axis
         ctx.scale(-1, 1)
         drawSprite(ctx, 'gun', 0, 0)
+        ctx.restore()
+    }
+
+    const drawPlayer = (ctx) => {
+        ctx.save();
+        // move to middle
+        ctx.translate(window.innerWidth/2, window.innerHeight/2);
+        ctx.translate(-assets['sprites.png'].sprites['player'].sw/2, -assets['sprites.png'].sprites['player'].sh/2)
+        drawSprite(ctx, 'player', 0, 0)
+        ctx.restore()
+    }
+
+    const drawHandUnderGun = (ctx, rotation) => {
+        ctx.save();
+        // move to middle
+        ctx.translate(window.innerWidth/2, window.innerHeight/2);
+        // rotate
+        ctx.rotate(rotation*Math.PI/180);
+        // offset by width
+        ctx.translate(assets['sprites.png'].sprites['gun'].sw+assets['sprites.png'].sprites['hand'].sw/2, -assets['sprites.png'].sprites['hand'].sh/2)
+        // flip across y axis
+        ctx.scale(-1, 1)
+        drawSprite(ctx, 'hand', 0, 0)
+        ctx.restore()
+    }
+
+
+    const drawHandOverGun = (ctx, rotation) => {
+        ctx.save();
+        // move to middle
+        ctx.translate(window.innerWidth/2, window.innerHeight/2);
+        // rotate
+        ctx.rotate(rotation*Math.PI/180);
+        // offset by width
+        ctx.translate(assets['sprites.png'].sprites['player'].sw/2+assets['sprites.png'].sprites['hand'].sw/2, -assets['sprites.png'].sprites['hand'].sh/2)
+        // flip across y axis
+        ctx.scale(-1, 1)
+        drawSprite(ctx, 'hand', 0, 0)
+        ctx.restore()
+    }
+
+    const drawHandsWithoutGun = (ctx, rotation) => {
+        ctx.save();
+        // move to middle
+        ctx.translate(window.innerWidth/2, window.innerHeight/2);
+        // rotate
+        ctx.rotate(rotation*Math.PI/180);
+        // offset by width
+        ctx.translate(assets['sprites.png'].sprites['player'].sw/2+assets['sprites.png'].sprites['hand'].sw/4, -assets['sprites.png'].sprites['hand'].sh/2)
+        // flip across y axis
+        ctx.scale(-1, 1)
+        drawSprite(ctx, 'hand', 0, 30)
+        drawSprite(ctx, 'hand', 0, -30)
         ctx.restore()
     }
 
