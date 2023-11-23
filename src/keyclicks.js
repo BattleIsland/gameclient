@@ -13,14 +13,17 @@ const validKeys = {
     'ArrowRight': {x: UNIT, y: 0},
 };
 
-export const calculateNetXAndY = (keysClicked) => {
+export const calculateNetXAndY = (keysClicked, multiplier = 1) => {
     const xAndYs = keysClicked.map(key => validKeys[key]);
     const netX = xAndYs.map((xy) => xy.x).reduce((prev, curr) => prev + curr, 0);
     const netY = xAndYs.map((xy) => xy.y).reduce((prev, curr) => prev + curr, 0);
-    return {netX, netY};
+    // need to normalize otherwise it's too fast when going diagonally
+    let normalizationFactor = Math.sqrt((netX * netX + netY * netY));
+    normalizationFactor = normalizationFactor === 0 ? 1 : normalizationFactor;
+    return {netX: multiplier * netX / normalizationFactor, netY: multiplier * netY / normalizationFactor};
 }
 
-export const useKeyboardClicks = () => {
+export const useKeyboardClicks = (onKeyUp = () => {}) => {
     const [keysSelected, setKeysSelected] = useState([]);
     useEffect(() => {
         document.onkeydown = (e) => {
@@ -35,6 +38,7 @@ export const useKeyboardClicks = () => {
             }
         }
         document.onkeyup = (e) => {
+            onKeyUp(e);
             setKeysSelected((oldKeysSelected) => oldKeysSelected.filter(k => e.key !== k));
         }
     }, []);

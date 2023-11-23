@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import { useAssets } from './assets';
 import { useMousePosition } from './mouseposition';
+import { calculateNetXAndY, useKeyboardClicks } from "./keyclicks";
 
 const MAP = {
     'rock': [
@@ -19,6 +20,23 @@ export const GameView = () => {
 
     const {angle} = useMousePosition();
     const [hasGun, setHasGun] = useState(false);
+    const {setKeysSelected} = useKeyboardClicks((e) => {
+        if(e.key === '1') {
+            setHasGun((oldHasGun) => !oldHasGun)
+        }
+});
+    const [playerX, setPlayerX] = useState(0);
+    const [playerY, setPlayerY] = useState(0);
+
+    useEffect(() => {
+        setInterval(() => {
+            let ks = [];
+            setKeysSelected(keyselected => {ks = keyselected; return keyselected;})
+            const {netX, netY} = calculateNetXAndY(ks, 2);
+            setPlayerX((oldPlayerX) => oldPlayerX + netX);
+            setPlayerY((oldPlayerY) => oldPlayerY + netY);
+        }, 5)
+    }, [])
 
     useEffect(() => {
         if (!loading) {
@@ -35,7 +53,7 @@ export const GameView = () => {
             const context = canvas.getContext('2d')
             context.fillStyle = '#80af49'
             context.fillRect(0, 0, canvas.width, canvas.height)
-            drawWorld(context)
+            drawWorld(context, playerX, playerY)
             drawPlayer(context);
             if (hasGun) {
                 drawHandUnderGun(context, angle);
@@ -45,16 +63,16 @@ export const GameView = () => {
                 drawHandsWithoutGun(context, angle);
             }
         }
-    }, [loading, angle, hasGun]);
+    }, [loading, angle, hasGun, playerX, playerY]);
 
-    useEffect(() => {
-        document.onkeyup = (e) => {
-            console.log(e)
-            if (e.key === '1') {
-                setHasGun((oldHasGun) => !oldHasGun)
-            }
-        }
-    }, []);
+    // useEffect(() => {
+    //     document.onkeyup = (e) => {
+    //         console.log(e)
+    //         if (e.key === '1') {
+    //             setHasGun((oldHasGun) => !oldHasGun)
+    //         }
+    //     }
+    // }, []);
 
     const drawSprite = (ctx, spriteName, x, y) => {
         const asset = assets['sprites.png'];
@@ -135,8 +153,8 @@ export const GameView = () => {
         ctx.restore();
     }
 
-    const drawWorld = (ctx) => {
-        Object.entries(MAP).forEach(([thing, listOfCoords]) => listOfCoords.forEach(([x, y]) => drawThing(ctx, thing, x, y)))
+    const drawWorld = (ctx, offset_x, offset_y) => {
+        Object.entries(MAP).forEach(([thing, listOfCoords]) => listOfCoords.forEach(([x, y]) => drawThing(ctx, thing, x-offset_x, y-offset_y)))
     }
 
     return <canvas ref={canvasRef} style={{margin: 0, overflow: 'hidden'}} />
