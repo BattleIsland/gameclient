@@ -27,7 +27,13 @@ const ASSETS = [
                 sy: 0,
                 sw: 179,
                 sh: 163
-            }
+            },
+            'toilet': {
+                sx: 540,
+                sy: 675,
+                sw: 128,
+                sh: 179
+            },
         },
     }
 ];

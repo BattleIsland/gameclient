@@ -26,11 +26,11 @@ export const Playground = () => {
                 const context = canvasRef.current.getContext('2d');
                 x.current += netX;
                 y.current += netY;
-                context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                context.fillRect(0, 0, canvas.width, canvas.height);
                 context.drawImage(sprites.current, x.current, y.current, 2000, 2000, 0, 0, 2000, 2000)
                 context.font = "20pt Calibri";
                 context.fillText(`(${x.current},${y.current})`, 100, 100);
-            }, 8)
+            }, 1)
         }
     }, [assets, loading])
 
